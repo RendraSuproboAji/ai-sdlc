@@ -1,0 +1,71 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "G=\"$CLAUDE_PROJECT_DIR/.claude/hooks/sdlc_guard.py\"; [ -f \"$G\" ] || { git -C \"$CLAUDE_PROJECT_DIR\" checkout HEAD -- .claude; echo \"SDLC guard: gate files were deleted and have been restored.\" >&2; exit 2; }; python3 \"$G\" pre"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "G=\"$CLAUDE_PROJECT_DIR/.claude/hooks/sdlc_guard.py\"; [ -f \"$G\" ] || { git -C \"$CLAUDE_PROJECT_DIR\" checkout HEAD -- .claude; echo \"SDLC guard: gate files were deleted and have been restored.\" >&2; exit 2; }; python3 \"$G\" post"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "G=\"$CLAUDE_PROJECT_DIR/.claude/hooks/sdlc_guard.py\"; [ -f \"$G\" ] || { git -C \"$CLAUDE_PROJECT_DIR\" checkout HEAD -- .claude; echo \"SDLC guard: gate files were deleted and have been restored.\" >&2; exit 2; }; python3 \"$G\" stop"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Edit(~/.claude/sdlc/**)"
+    ],
+    "allow": [
+      "Bash(make test)",
+      "Bash(make lint)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "allowUnsandboxedCommands": false,
+    "failIfUnavailable": true,
+    "filesystem": {
+      "denyRead": [
+        "./.env",
+        "./.env.*",
+        "./secrets"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "pypi.org",
+        "files.pythonhosted.org",
+        "registry.npmjs.org",
+        "github.com"
+      ]
+    }
+  }
+}
