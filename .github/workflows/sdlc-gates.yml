@@ -1,0 +1,19 @@
+name: SDLC gates
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Gate files untouched, acceptances by humans, locked tests unchanged
+        env:
+          CLAUDE_PROJECT_DIR: ${{ github.workspace }}
+          GATES_APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'gates-approved') && '1' || '' }}
+        run: python3 .claude/hooks/sdlc_guard.py ci "origin/${{ github.base_ref }}"
+      - name: Install test dependencies   # adapt to your stack, e.g. npm ci / pip install -r requirements-dev.txt
+        run: pip install pytest pyflakes
+      - name: Tests
+        run: make test
